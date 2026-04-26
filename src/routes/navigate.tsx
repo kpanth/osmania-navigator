@@ -4,25 +4,19 @@ import floorGround from "../assets/floor-ground.png";
 import floor1 from "../assets/floor-1.png";
 import { useNav } from "../context/NavigationContext";
 import { rooms } from "../data/rooms";
-import { getRoute } from "../data/routes";
+import { buildPath, buildSteps } from "../data/routes";
 import LangToggle from "../components/LangToggle";
 
 export const Route = createFileRoute("/navigate")({ component: NavigateScreen });
-
-// Coordinates (viewBox 0..100) for each step on the mini-map
-const stepPoints: { x: number; y: number }[] = [
-  { x: 50, y: 92 }, // Step 1 — entrance
-  { x: 50, y: 65 }, // Step 2 — central corridor
-  { x: 78, y: 50 }, // Step 3 — turn
-  { x: 82, y: 22 }, // Step 4 — destination
-];
 
 function NavigateScreen() {
   const router = useRouter();
   const { step, setStep, start, destination } = useNav();
   const startRoom = rooms.find(r => r.id === start);
   const destRoom  = rooms.find(r => r.id === destination);
-  const steps = destRoom ? getRoute(destRoom.id, destRoom.floor, destRoom.name) : [];
+
+  const path  = startRoom && destRoom ? buildPath(startRoom, destRoom) : [];
+  const steps = startRoom && destRoom ? buildSteps(startRoom, destRoom) : [];
   const total = Math.max(steps.length, 1);
   const safeStep = Math.min(step, total);
   const current = steps[safeStep - 1];
@@ -36,16 +30,29 @@ function NavigateScreen() {
   const arrowKey = current?.direction === "left" ? "left" : current?.direction === "right" ? "right" : "up";
   const Arrow = arrowKey === "up" ? ArrowUp : arrowKey === "right" ? ArrowRight : ArrowLeftIcon;
 
-  // Build the polyline path proportionally based on current step
-  const pts = stepPoints.slice(0, Math.min(stepPoints.length, total));
-  const idx = Math.min(safeStep - 1, pts.length - 1);
-  const traveledPath = pts.slice(0, idx + 1).map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
-  const fullPath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
-  const cur = pts[idx] ?? pts[0];
-  const startPt = pts[0];
-  const endPt = pts[pts.length - 1];
+  // Map progress along path: each step (except the first "Start at...") corresponds to the segment ending at path[i]
+  // Start step -> point 0; subsequent step k -> point k.
+  const curFloor = current?.floor ?? startRoom?.floor ?? "G";
+  const floorImg = curFloor === "1" ? floor1 : floorGround;
 
-  const floorImg = current?.floor === "1" ? floor1 : floorGround;
+  // Points for the current floor
+  const floorPts = path.filter(p => p.floor === curFloor);
+  // Index in full path for current step (clamped)
+  const fullIdx = Math.min(safeStep - 1, path.length - 1);
+  // How many of floorPts are "traveled" so far
+  const traveledCount = path.slice(0, fullIdx + 1).filter(p => p.floor === curFloor).length;
+
+  const fullPath = floorPts.length > 1
+    ? floorPts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ")
+    : "";
+  const traveled = floorPts.slice(0, Math.max(2, traveledCount));
+  const traveledPath = traveled.length > 1
+    ? traveled.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ")
+    : "";
+
+  const startPt = floorPts[0];
+  const endPt   = floorPts[floorPts.length - 1];
+  const cur     = floorPts[Math.min(traveledCount - 1, floorPts.length - 1)] ?? startPt;
 
   return (
     <div className="nav-screen">
@@ -72,7 +79,7 @@ function NavigateScreen() {
           </div>
           <div className="r">
             <div className="lab">Remaining</div>
-            <div className="rem">{Math.max(1, total - safeStep)} step{total - safeStep === 1 ? "" : "s"}</div>
+            <div className="rem">{Math.max(0, total - safeStep)} step{total - safeStep === 1 ? "" : "s"}</div>
           </div>
         </div>
         <div className="progress-bar"><div className="progress-fill" style={{ width: `${pct}%` }} /></div>
@@ -80,7 +87,7 @@ function NavigateScreen() {
       </div>
 
       <div className="direction-card">
-        <div className="floor-pill"><Layers size={14} /> Floor {current?.floor === "1" ? "1" : "G"}</div>
+        <div className="floor-pill"><Layers size={14} /> Floor {curFloor === "1" ? "1" : "G"}</div>
         <div className="arrow-circle"><Arrow size={72} strokeWidth={2.5} /></div>
         <div className="dir-text">{current?.instruction}</div>
         {current?.landmark && <div className="dir-sub"><Landmark size={16} /> {current.landmark}</div>}
@@ -94,16 +101,11 @@ function NavigateScreen() {
               <path d="M0,0 L10,5 L0,10 z" fill="#3D1D8A" />
             </marker>
           </defs>
-          {/* Full route in light dashed */}
-          <path className="mini-route-bg" d={fullPath} />
-          {/* Traveled portion in solid color */}
-          <path className="mini-route-traveled" d={traveledPath} markerEnd="url(#miniArrow)" />
-          {/* Start marker */}
-          <circle cx={startPt.x} cy={startPt.y} r="2.6" className="mini-dot-start" />
-          {/* End marker */}
-          <circle cx={endPt.x} cy={endPt.y} r="2.6" className="mini-dot-end" />
-          {/* Current position pulse */}
-          <circle cx={cur.x} cy={cur.y} r="3.2" className="mini-dot-current" />
+          {fullPath && <path className="mini-route-bg" d={fullPath} />}
+          {traveledPath && <path className="mini-route-traveled" d={traveledPath} markerEnd="url(#miniArrow)" />}
+          {startPt && <circle cx={startPt.x} cy={startPt.y} r="2.6" className="mini-dot-start" />}
+          {endPt   && <circle cx={endPt.x}   cy={endPt.y}   r="2.6" className="mini-dot-end" />}
+          {cur     && <circle cx={cur.x}     cy={cur.y}     r="3.2" className="mini-dot-current" />}
         </svg>
         <div className="mini-badge"><MapPin size={12} /> LIVE ROUTE</div>
       </div>
