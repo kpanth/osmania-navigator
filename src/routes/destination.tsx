@@ -51,12 +51,44 @@ function SelectDestination() {
     <div className="screen">
       <header className="page-header">
         <button className="icon-btn" onClick={() => router.history.back()}><ArrowLeft size={20} /></button>
-        <div className="page-title">Select Destination</div>
+        <div className="page-title">Plan Your Route</div>
         <button className="sos-btn"><ShieldAlert size={16} /> SOS</button>
       </header>
 
       <div className="breadcrumb">
-        Home <span>›</span> <span className="current">Select Destination</span>
+        Home <span>›</span> <span className="current">Plan Route</span>
+      </div>
+
+      <div className="route-picker">
+        <div className="rp-rail">
+          <Circle size={14} fill="#22C55E" color="#22C55E" />
+          <div className="rp-line" />
+          <Flag size={14} color="#3D1D8A" fill="#3D1D8A" />
+        </div>
+        <div className="rp-fields">
+          <button
+            className={`rp-field ${picking === "from" ? "active" : ""}`}
+            onClick={() => setPicking("from")}
+          >
+            <span className="rp-label">FROM</span>
+            <span className="rp-value">{startRoom?.name ?? "Choose start"}</span>
+          </button>
+          <div className="rp-divider" />
+          <button
+            className={`rp-field ${picking === "to" ? "active" : ""}`}
+            onClick={() => setPicking("to")}
+          >
+            <span className="rp-label">TO</span>
+            <span className="rp-value">{destRoom?.name ?? "Choose destination"}</span>
+          </button>
+        </div>
+        <button className="rp-swap" onClick={swap} aria-label="Swap">
+          <ArrowUpDown size={16} />
+        </button>
+      </div>
+
+      <div className="picking-hint">
+        {picking === "from" ? "Tap a room to set as starting point" : "Tap a room to set as destination"}
       </div>
 
       <div className="search-wrap">
