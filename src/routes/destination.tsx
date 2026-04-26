@@ -5,7 +5,12 @@ import BottomNav from "../components/BottomNav";
 import { useNav } from "../context/NavigationContext";
 import { rooms, type Room, type Category } from "../data/rooms";
 
-export const Route = createFileRoute("/destination")({ component: SelectDestination });
+export const Route = createFileRoute("/destination")({
+  component: SelectDestination,
+  validateSearch: (s: Record<string, unknown>) => ({
+    mode: s.mode === "start" ? ("start" as const) : ("dest" as const),
+  }),
+});
 
 const catMeta: Record<Category, { icon: typeof FlaskConical; bg: string; fg: string }> = {
   Lab:       { icon: FlaskConical, bg: "#EDE9FF", fg: "#6B48D4" },
@@ -16,9 +21,10 @@ const catMeta: Record<Category, { icon: typeof FlaskConical; bg: string; fg: str
 
 function SelectDestination() {
   const router = useRouter();
+  const { mode } = Route.useSearch();
   const { start, setStart, destination, setDestination } = useNav();
   const [q, setQ] = useState("");
-  const [picking, setPicking] = useState<"from" | "to">("to");
+  const [picking, setPicking] = useState<"from" | "to">(mode === "start" ? "from" : "to");
 
   const startRoom = rooms.find(r => r.id === start);
   const destRoom  = rooms.find(r => r.id === destination);
