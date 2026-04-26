@@ -9,7 +9,7 @@ export const Route = createFileRoute("/arrived")({ component: Arrived });
 function Arrived() {
   const router = useRouter();
   const { setStep } = useNav();
-  const again = () => { setStep(1); router.navigate({ to: "/destination" }); };
+  const again = () => { setStep(1); router.navigate({ to: "/destination", search: {} }); };
   const home = () => { setStep(1); router.navigate({ to: "/" }); };
 
   return (

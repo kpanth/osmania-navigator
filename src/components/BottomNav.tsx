@@ -11,11 +11,11 @@ export default function BottomNav({ active = "map", showFab = false }: { active?
         <Map size={22} /><span>Map</span>
       </Link>
       {showFab && (
-        <Link to="/destination" className="nav-fab" aria-label="Navigate">
+        <Link to="/destination" search={{}} className="nav-fab" aria-label="Navigate">
           <Navigation size={24} />
         </Link>
       )}
-      <Link to="/destination" className={`nav-item ${active === "schedule" ? "active" : ""}`}>
+      <Link to="/destination" search={{}} className={`nav-item ${active === "schedule" ? "active" : ""}`}>
         <Calendar size={22} /><span>Schedule</span>
       </Link>
       <Link to="/" className={`nav-item ${active === "profile" ? "active" : ""}`}>

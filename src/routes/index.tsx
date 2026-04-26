@@ -51,7 +51,7 @@ function Welcome() {
       </div>
 
       <div className="actions">
-        <Link to="/destination" className="btn btn-primary">
+        <Link to="/destination" search={{}} className="btn btn-primary">
           <Search size={18} /> {t.findDept}
         </Link>
         <Link to="/map" className="btn btn-outline">
