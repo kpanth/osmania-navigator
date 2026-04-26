@@ -6,7 +6,7 @@ import floor1 from "../assets/floor-1.png";
 import BottomNav from "../components/BottomNav";
 import { useNav } from "../context/NavigationContext";
 import { rooms } from "../data/rooms";
-import { getRoute, totalDistance, walkMinutes } from "../data/routes";
+import { buildPath, buildSteps, totalDistance, walkMinutes } from "../data/routes";
 
 export const Route = createFileRoute("/map")({ component: CampusMap });
 
@@ -15,12 +15,21 @@ function CampusMap() {
   const { start, destination } = useNav();
   const startRoom = rooms.find(r => r.id === start);
   const destRoom  = rooms.find(r => r.id === destination);
-  const [floor, setFloor] = useState<"G" | "1">(destRoom?.floor ?? "G");
+  const [floor, setFloor] = useState<"G" | "1">(startRoom?.floor ?? "G");
   const img = floor === "G" ? floorGround : floor1;
 
-  const steps = destRoom ? getRoute(destRoom.id, destRoom.floor, destRoom.name) : [];
+  const path  = startRoom && destRoom ? buildPath(startRoom, destRoom) : [];
+  const steps = startRoom && destRoom ? buildSteps(startRoom, destRoom) : [];
   const meters = totalDistance(steps);
   const mins = walkMinutes(steps);
+
+  // Polyline for the active floor only
+  const floorPoints = path.filter(p => p.floor === floor);
+  const d = floorPoints.length > 1
+    ? floorPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ")
+    : "";
+  const showStart = startRoom?.floor === floor;
+  const showEnd   = destRoom?.floor === floor;
 
   return (
     <div className="screen map-screen">
@@ -45,17 +54,21 @@ function CampusMap() {
               <path d="M0,0 L10,5 L0,10 z" fill="#3D1D8A" />
             </marker>
           </defs>
-          <path className="route-path-shadow" d="M14,86 L14,58 L46,58 L46,32 L82,32 L82,18" />
-          <path className="route-path" d="M14,86 L14,58 L46,58 L46,32 L82,32 L82,18" markerEnd="url(#arrowHead)" />
+          {d && <path className="route-path-shadow" d={d} />}
+          {d && <path className="route-path" d={d} markerEnd="url(#arrowHead)" />}
         </svg>
-        <div className="map-pin start-pin" title="You are here">
-          <span className="pin-dot" />
-          <span className="pin-label">START</span>
-        </div>
-        <div className="map-pin end-pin" title="Destination">
-          <span className="pin-flag">📍</span>
-          <span className="pin-label end">{destRoom?.name ?? ""}</span>
-        </div>
+        {showStart && startRoom && (
+          <div className="map-pin start-pin" style={{ left: `${startRoom.x}%`, top: `${startRoom.y}%` }} title="You are here">
+            <span className="pin-dot" />
+            <span className="pin-label">START</span>
+          </div>
+        )}
+        {showEnd && destRoom && (
+          <div className="map-pin end-pin" style={{ left: `${destRoom.x}%`, top: `${destRoom.y}%` }} title="Destination">
+            <span className="pin-flag">📍</span>
+            <span className="pin-label end">{destRoom.name}</span>
+          </div>
+        )}
         <div className="zoom-controls">
           <button className="zoom-btn"><Plus size={18} /></button>
           <button className="zoom-btn"><Minus size={18} /></button>
