@@ -9,7 +9,7 @@ export const Route = createFileRoute("/map")({ component: CampusMap });
 
 function CampusMap() {
   const router = useRouter();
-  const [floor, setFloor] = useState("2");
+  const [floor, setFloor] = useState("G");
   const img = floor === "G" ? floorGround : floor1;
 
   return (
@@ -55,7 +55,7 @@ function CampusMap() {
       </div>
 
       <div className="floor-tabs">
-        {["G","1","2","3"].map(f => (
+        {["G","1"].map(f => (
           <button key={f} className={`floor-tab ${floor === f ? "active" : ""}`} onClick={() => setFloor(f)}>{f}</button>
         ))}
       </div>
