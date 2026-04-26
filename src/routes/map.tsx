@@ -30,6 +30,23 @@ function CampusMap() {
 
       <div className="map-area">
         <img src={img} alt={`Floor ${floor} plan`} />
+        <svg className="route-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <marker id="arrowHead" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#3D1D8A" />
+            </marker>
+          </defs>
+          <path className="route-path-shadow" d="M14,86 L14,58 L46,58 L46,32 L82,32 L82,18" />
+          <path className="route-path" d="M14,86 L14,58 L46,58 L46,32 L82,32 L82,18" markerEnd="url(#arrowHead)" />
+        </svg>
+        <div className="map-pin start-pin" title="You are here">
+          <span className="pin-dot" />
+          <span className="pin-label">START</span>
+        </div>
+        <div className="map-pin end-pin" title="Destination">
+          <span className="pin-flag">📍</span>
+          <span className="pin-label end">Lab 204</span>
+        </div>
         <div className="zoom-controls">
           <button className="zoom-btn"><Plus size={18} /></button>
           <button className="zoom-btn"><Minus size={18} /></button>
