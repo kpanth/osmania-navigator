@@ -1,26 +1,57 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { MapPin, Search, Map as MapIcon, ShieldAlert, ExternalLink, Compass } from "lucide-react";
+import floorGround from "../assets/floor-ground.png";
+import LangToggle from "../components/LangToggle";
+import { useNav } from "../context/NavigationContext";
+import { translations } from "../data/translations";
 
-export const Route = createFileRoute("/")({
-  component: Index,
-});
+export const Route = createFileRoute("/")({ component: Welcome });
 
-// IMPORTANT: Replace this placeholder. For sites with multiple pages (About, Services, Contact, etc.),
-// create separate route files (about.tsx, services.tsx, contact.tsx) — don't put all pages in this file.
-function PlaceholderIndex() {
+function Welcome() {
+  const { lang } = useNav();
+  const t = translations[lang];
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="screen no-nav">
+      <header className="app-header">
+        <div className="welcome-logo">OC</div>
+        <div className="welcome-title">Osmania College</div>
+        <LangToggle />
+      </header>
+
+      <section className="hero">
+        <h1>{t.welcome}</h1>
+        <span className="badge-pill"><Compass size={16} /> {t.smartNav}</span>
+      </section>
+
+      <div className="position-card">
+        <div className="pos-icon">
+          <MapPin size={26} />
+          <span className="live-tag">LIVE</span>
+        </div>
+        <div className="pos-meta">
+          <div className="label">{t.currentPosition}</div>
+          <div className="name">{t.mainGate}</div>
+          <div className="floor"><span className="dot" /> {t.groundFloor}</div>
+        </div>
+      </div>
+
+      <div className="map-card">
+        <img src={floorGround} alt="Osmania ground floor plan" />
+      </div>
+
+      <div className="actions">
+        <Link to="/destination" className="btn btn-primary">
+          <Search size={18} /> {t.findDept}
+        </Link>
+        <Link to="/map" className="btn btn-outline">
+          <MapIcon size={18} /> {t.viewMap} <ExternalLink size={14} />
+        </Link>
+        <button className="btn btn-danger">
+          <ShieldAlert size={18} /> {t.security}
+        </button>
+      </div>
+
+      <div className="footer">{t.footer}</div>
     </div>
   );
-}
-
-function Index() {
-  return <PlaceholderIndex />;
 }
