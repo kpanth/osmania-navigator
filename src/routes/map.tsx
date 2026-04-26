@@ -54,7 +54,7 @@ function CampusMap() {
         </div>
         <div className="map-pin end-pin" title="Destination">
           <span className="pin-flag">📍</span>
-          <span className="pin-label end">Lab 204</span>
+          <span className="pin-label end">{destRoom?.name ?? ""}</span>
         </div>
         <div className="zoom-controls">
           <button className="zoom-btn"><Plus size={18} /></button>
@@ -64,7 +64,7 @@ function CampusMap() {
       </div>
 
       <div className="floor-tabs">
-        {["G","1"].map(f => (
+        {(["G","1"] as const).map(f => (
           <button key={f} className={`floor-tab ${floor === f ? "active" : ""}`} onClick={() => setFloor(f)}>{f}</button>
         ))}
       </div>
@@ -73,8 +73,8 @@ function CampusMap() {
         <div className="grab" />
         <div className="sheet-row">
           <div className="info">
-            <h3>Navigation to Lab 204</h3>
-            <div className="walk"><Footprints size={14} /> Approx. 3 minutes walk (180m)</div>
+            <h3>{startRoom?.name} → {destRoom?.name}</h3>
+            <div className="walk"><Footprints size={14} /> Approx. {mins} minute{mins === 1 ? "" : "s"} walk ({meters}m)</div>
           </div>
           <button className="icon-square"><Layers size={20} /></button>
         </div>
