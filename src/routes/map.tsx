@@ -4,13 +4,23 @@ import { ArrowLeft, Search, Plus, Minus, Crosshair, Footprints, Layers, Share2, 
 import floorGround from "../assets/floor-ground.png";
 import floor1 from "../assets/floor-1.png";
 import BottomNav from "../components/BottomNav";
+import { useNav } from "../context/NavigationContext";
+import { rooms } from "../data/rooms";
+import { getRoute, totalDistance, walkMinutes } from "../data/routes";
 
 export const Route = createFileRoute("/map")({ component: CampusMap });
 
 function CampusMap() {
   const router = useRouter();
-  const [floor, setFloor] = useState("G");
+  const { start, destination } = useNav();
+  const startRoom = rooms.find(r => r.id === start);
+  const destRoom  = rooms.find(r => r.id === destination);
+  const [floor, setFloor] = useState<"G" | "1">(destRoom?.floor ?? "G");
   const img = floor === "G" ? floorGround : floor1;
+
+  const steps = destRoom ? getRoute(destRoom.id, destRoom.floor, destRoom.name) : [];
+  const meters = totalDistance(steps);
+  const mins = walkMinutes(steps);
 
   return (
     <div className="screen map-screen">
@@ -18,14 +28,13 @@ function CampusMap() {
         <button className="icon-btn" onClick={() => router.history.back()}><ArrowLeft size={20} /></button>
         <div style={{ position: "relative", flex: 1 }}>
           <Search size={18} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#6B7280" }} />
-          <input className="map-search" defaultValue="Lab 204 - Digital Arts" />
+          <input className="map-search" readOnly value={destRoom?.name ?? ""} />
         </div>
       </div>
 
       <div className="suggest-row">
-        <div className="suggest-card">ROOM 201</div>
-        <div className="suggest-card">LECTURE HA…</div>
-        <div className="suggest-card">SEMINAR</div>
+        <div className="suggest-card">FROM: {startRoom?.name ?? "—"}</div>
+        <div className="suggest-card">TO: {destRoom?.name ?? "—"}</div>
       </div>
 
       <div className="map-area">
@@ -45,7 +54,7 @@ function CampusMap() {
         </div>
         <div className="map-pin end-pin" title="Destination">
           <span className="pin-flag">📍</span>
-          <span className="pin-label end">Lab 204</span>
+          <span className="pin-label end">{destRoom?.name ?? ""}</span>
         </div>
         <div className="zoom-controls">
           <button className="zoom-btn"><Plus size={18} /></button>
@@ -55,7 +64,7 @@ function CampusMap() {
       </div>
 
       <div className="floor-tabs">
-        {["G","1"].map(f => (
+        {(["G","1"] as const).map(f => (
           <button key={f} className={`floor-tab ${floor === f ? "active" : ""}`} onClick={() => setFloor(f)}>{f}</button>
         ))}
       </div>
@@ -64,8 +73,8 @@ function CampusMap() {
         <div className="grab" />
         <div className="sheet-row">
           <div className="info">
-            <h3>Navigation to Lab 204</h3>
-            <div className="walk"><Footprints size={14} /> Approx. 3 minutes walk (180m)</div>
+            <h3>{startRoom?.name} → {destRoom?.name}</h3>
+            <div className="walk"><Footprints size={14} /> Approx. {mins} minute{mins === 1 ? "" : "s"} walk ({meters}m)</div>
           </div>
           <button className="icon-square"><Layers size={20} /></button>
         </div>
