@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, ShieldAlert, Search, FlaskConical, GraduationCap, Coffee, Building2, ChevronRight, MapPin } from "lucide-react";
+import { ArrowLeft, ShieldAlert, Search, FlaskConical, GraduationCap, Coffee, Building2, ChevronRight, MapPin, Circle, Flag, ArrowUpDown } from "lucide-react";
 import BottomNav from "../components/BottomNav";
 import { useNav } from "../context/NavigationContext";
 import { rooms, type Room, type Category } from "../data/rooms";
@@ -16,12 +16,27 @@ const catMeta: Record<Category, { icon: typeof FlaskConical; bg: string; fg: str
 
 function SelectDestination() {
   const router = useRouter();
-  const { setDestination } = useNav();
+  const { start, setStart, destination, setDestination } = useNav();
   const [q, setQ] = useState("");
+  const [picking, setPicking] = useState<"from" | "to">("to");
+
+  const startRoom = rooms.find(r => r.id === start);
+  const destRoom  = rooms.find(r => r.id === destination);
 
   const pick = (r: Room) => {
-    setDestination(r.id);
-    router.navigate({ to: "/map" });
+    if (picking === "from") {
+      setStart(r.id);
+      setPicking("to");
+    } else {
+      setDestination(r.id);
+      router.navigate({ to: "/map" });
+    }
+  };
+
+  const swap = () => {
+    const s = start;
+    setStart(destination);
+    setDestination(s);
   };
 
   const filtered = useMemo(() => {
