@@ -55,7 +55,7 @@ function CampusMap() {
       </div>
 
       <div className="floor-tabs">
-        {["G","1","2","3"].map(f => (
+        {["G","1"].map(f => (
           <button key={f} className={`floor-tab ${floor === f ? "active" : ""}`} onClick={() => setFloor(f)}>{f}</button>
         ))}
       </div>
