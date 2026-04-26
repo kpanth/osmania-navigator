@@ -9,8 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as NavigateRouteImport } from './routes/navigate'
+import { Route as MapRouteImport } from './routes/map'
+import { Route as DestinationRouteImport } from './routes/destination'
+import { Route as ArrivedRouteImport } from './routes/arrived'
 import { Route as IndexRouteImport } from './routes/index'
 
+const NavigateRoute = NavigateRouteImport.update({
+  id: '/navigate',
+  path: '/navigate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MapRoute = MapRouteImport.update({
+  id: '/map',
+  path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DestinationRoute = DestinationRouteImport.update({
+  id: '/destination',
+  path: '/destination',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ArrivedRoute = ArrivedRouteImport.update({
+  id: '/arrived',
+  path: '/arrived',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +43,72 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/arrived': typeof ArrivedRoute
+  '/destination': typeof DestinationRoute
+  '/map': typeof MapRoute
+  '/navigate': typeof NavigateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/arrived': typeof ArrivedRoute
+  '/destination': typeof DestinationRoute
+  '/map': typeof MapRoute
+  '/navigate': typeof NavigateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/arrived': typeof ArrivedRoute
+  '/destination': typeof DestinationRoute
+  '/map': typeof MapRoute
+  '/navigate': typeof NavigateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/arrived' | '/destination' | '/map' | '/navigate'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/arrived' | '/destination' | '/map' | '/navigate'
+  id: '__root__' | '/' | '/arrived' | '/destination' | '/map' | '/navigate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ArrivedRoute: typeof ArrivedRoute
+  DestinationRoute: typeof DestinationRoute
+  MapRoute: typeof MapRoute
+  NavigateRoute: typeof NavigateRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/navigate': {
+      id: '/navigate'
+      path: '/navigate'
+      fullPath: '/navigate'
+      preLoaderRoute: typeof NavigateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/map': {
+      id: '/map'
+      path: '/map'
+      fullPath: '/map'
+      preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/destination': {
+      id: '/destination'
+      path: '/destination'
+      fullPath: '/destination'
+      preLoaderRoute: typeof DestinationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/arrived': {
+      id: '/arrived'
+      path: '/arrived'
+      fullPath: '/arrived'
+      preLoaderRoute: typeof ArrivedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +121,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ArrivedRoute: ArrivedRoute,
+  DestinationRoute: DestinationRoute,
+  MapRoute: MapRoute,
+  NavigateRoute: NavigateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
