@@ -162,11 +162,11 @@ export function buildSteps(start: Room, dest: Room): RouteStep[] {
     if (i === path.length - 1) instr = `${dest.name} is ahead (${dist}m)`;
 
     // Detect a turn vs the previous segment direction
-    if (steps.length > 1) {
+    if (steps.length > 1 && i >= 2) {
       const last = steps[steps.length - 1];
       if (last.direction === "straight") {
-        const prevDx = prev.x - path[i-2]?.x ?? 0;
-        const prevDy = prev.y - path[i-2]?.y ?? 0;
+        const prevDx = prev.x - path[i-2].x;
+        const prevDy = prev.y - path[i-2].y;
         const cross = prevDx * dy - prevDy * dx;
         if (Math.abs(cross) > 0.5) dir = cross > 0 ? "right" : "left";
       }
