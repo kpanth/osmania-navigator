@@ -531,3 +531,33 @@ h1,h2,h3,h4 { font-family: var(--font-h); color: var(--text); }
   color: #6B48D4; padding: 8px 12px; background: #F5F1FF;
   border-radius: 10px; text-align: center;
 }
+
+/* Position card as button */
+.position-card-btn { width: calc(100% - 32px); margin-left: 16px; margin-right: 16px; text-align: left; cursor: pointer; }
+.position-card-btn:hover { box-shadow: 0 6px 20px rgba(61,29,138,0.12); }
+.pos-edit { margin-left: auto; color: var(--primary-light); padding: 8px; border-radius: 50%; background: var(--primary-ultra); display: flex; align-items: center; justify-content: center; }
+
+/* Route summary on navigate screen */
+.route-summary-bar {
+  margin: 0 16px 12px; padding: 10px 14px; background: #fff;
+  border: 1px solid #EEE9FF; border-radius: 12px; display: flex; align-items: center;
+  gap: 8px; font-family: var(--font-h); font-weight: 700; font-size: 13px;
+  box-shadow: 0 2px 8px rgba(61,29,138,0.05);
+}
+.rs-from { color: #22C55E; }
+.rs-arrow { color: #9CA3AF; }
+.rs-to { color: var(--primary); flex: 1; }
+
+/* Mini map route overlay */
+.mini-route { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.mini-route-bg { fill: none; stroke: rgba(61,29,138,0.25); stroke-width: 1.4; stroke-dasharray: 2 2; stroke-linecap: round; stroke-linejoin: round; }
+.mini-route-traveled {
+  fill: none; stroke: #3D1D8A; stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 1px 2px rgba(61,29,138,0.4));
+  stroke-dasharray: 4 3;
+  animation: dashFlow 1.2s linear infinite;
+}
+.mini-dot-start { fill: #22C55E; stroke: #fff; stroke-width: 0.8; }
+.mini-dot-end { fill: #EF4444; stroke: #fff; stroke-width: 0.8; }
+.mini-dot-current { fill: #3D1D8A; stroke: #fff; stroke-width: 1; animation: pulseStart 1.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }

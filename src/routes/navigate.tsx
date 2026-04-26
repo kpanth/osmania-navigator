@@ -1,25 +1,51 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { ArrowLeft, ArrowUp, ArrowRight, ArrowLeft as ArrowLeftIcon, Layers, Landmark, CheckCircle2, ChevronRight, MapPin } from "lucide-react";
+import floorGround from "../assets/floor-ground.png";
 import floor1 from "../assets/floor-1.png";
 import { useNav } from "../context/NavigationContext";
-import { navSteps } from "../data/rooms";
+import { rooms } from "../data/rooms";
+import { getRoute } from "../data/routes";
 import LangToggle from "../components/LangToggle";
 
 export const Route = createFileRoute("/navigate")({ component: NavigateScreen });
 
+// Coordinates (viewBox 0..100) for each step on the mini-map
+const stepPoints: { x: number; y: number }[] = [
+  { x: 50, y: 92 }, // Step 1 — entrance
+  { x: 50, y: 65 }, // Step 2 — central corridor
+  { x: 78, y: 50 }, // Step 3 — turn
+  { x: 82, y: 22 }, // Step 4 — destination
+];
+
 function NavigateScreen() {
   const router = useRouter();
-  const { step, setStep } = useNav();
-  const total = navSteps.length;
-  const current = navSteps[Math.min(step - 1, total - 1)];
-  const pct = (step / total) * 100;
+  const { step, setStep, start, destination } = useNav();
+  const startRoom = rooms.find(r => r.id === start);
+  const destRoom  = rooms.find(r => r.id === destination);
+  const steps = destRoom ? getRoute(destRoom.id, destRoom.floor, destRoom.name) : [];
+  const total = Math.max(steps.length, 1);
+  const safeStep = Math.min(step, total);
+  const current = steps[safeStep - 1];
+  const pct = (safeStep / total) * 100;
 
   const next = () => {
-    if (step >= total) router.navigate({ to: "/arrived" });
+    if (safeStep >= total) router.navigate({ to: "/arrived" });
     else setStep(step + 1);
   };
 
-  const Arrow = current.arrow === "up" ? ArrowUp : current.arrow === "right" ? ArrowRight : ArrowLeftIcon;
+  const arrowKey = current?.direction === "left" ? "left" : current?.direction === "right" ? "right" : "up";
+  const Arrow = arrowKey === "up" ? ArrowUp : arrowKey === "right" ? ArrowRight : ArrowLeftIcon;
+
+  // Build the polyline path proportionally based on current step
+  const pts = stepPoints.slice(0, Math.min(stepPoints.length, total));
+  const idx = Math.min(safeStep - 1, pts.length - 1);
+  const traveledPath = pts.slice(0, idx + 1).map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const fullPath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const cur = pts[idx] ?? pts[0];
+  const startPt = pts[0];
+  const endPt = pts[pts.length - 1];
+
+  const floorImg = current?.floor === "1" ? floor1 : floorGround;
 
   return (
     <div className="nav-screen">
@@ -32,15 +58,21 @@ function NavigateScreen() {
         <LangToggle short />
       </header>
 
+      <div className="route-summary-bar">
+        <span className="rs-from">{startRoom?.name ?? "Start"}</span>
+        <span className="rs-arrow">→</span>
+        <span className="rs-to">{destRoom?.name ?? "Destination"}</span>
+      </div>
+
       <div className="progress-card">
         <div className="progress-top">
           <div>
             <div className="l">PROGRESS</div>
-            <div className="step">Step {step} of {total}</div>
+            <div className="step">Step {safeStep} of {total}</div>
           </div>
           <div className="r">
             <div className="lab">Remaining</div>
-            <div className="rem">{Math.max(1, total - step)} minute{total - step === 1 ? "" : "s"}</div>
+            <div className="rem">{Math.max(1, total - safeStep)} step{total - safeStep === 1 ? "" : "s"}</div>
           </div>
         </div>
         <div className="progress-bar"><div className="progress-fill" style={{ width: `${pct}%` }} /></div>
@@ -48,21 +80,37 @@ function NavigateScreen() {
       </div>
 
       <div className="direction-card">
-        <div className="floor-pill"><Layers size={14} /> Floor {current.floor}</div>
+        <div className="floor-pill"><Layers size={14} /> Floor {current?.floor === "1" ? "1" : "G"}</div>
         <div className="arrow-circle"><Arrow size={72} strokeWidth={2.5} /></div>
-        <div className="dir-text">{current.instruction}</div>
-        <div className="dir-sub"><Landmark size={16} /> {current.sub}</div>
+        <div className="dir-text">{current?.instruction}</div>
+        {current?.landmark && <div className="dir-sub"><Landmark size={16} /> {current.landmark}</div>}
       </div>
 
       <div className="mini-map">
-        <img src={floor1} alt="Mini map" />
-        <div className="pin" />
-        <div className="mini-badge"><MapPin size={12} /> MINI MAP VIEW</div>
+        <img src={floorImg} alt="Mini map" />
+        <svg className="mini-route" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <defs>
+            <marker id="miniArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#3D1D8A" />
+            </marker>
+          </defs>
+          {/* Full route in light dashed */}
+          <path className="mini-route-bg" d={fullPath} />
+          {/* Traveled portion in solid color */}
+          <path className="mini-route-traveled" d={traveledPath} markerEnd="url(#miniArrow)" />
+          {/* Start marker */}
+          <circle cx={startPt.x} cy={startPt.y} r="2.6" className="mini-dot-start" />
+          {/* End marker */}
+          <circle cx={endPt.x} cy={endPt.y} r="2.6" className="mini-dot-end" />
+          {/* Current position pulse */}
+          <circle cx={cur.x} cy={cur.y} r="3.2" className="mini-dot-current" />
+        </svg>
+        <div className="mini-badge"><MapPin size={12} /> LIVE ROUTE</div>
       </div>
 
       <div className="nav-actions">
         <button className="btn btn-primary" onClick={next}>
-          {step >= total ? "Finish" : "Next Step"} <ChevronRight size={18} />
+          {safeStep >= total ? "Finish" : "Next Step"} <ChevronRight size={18} />
         </button>
         <button className="text-link" onClick={() => { setStep(1); router.navigate({ to: "/" }); }}>
           × Cancel Navigation
