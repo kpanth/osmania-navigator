@@ -1,28 +1,36 @@
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { ArrowLeft, ShieldAlert, Search, GraduationCap, FlaskConical, BookOpen, Building2, DoorOpen, Coffee, Clock, ChevronRight } from "lucide-react";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { ArrowLeft, ShieldAlert, Search, FlaskConical, GraduationCap, Coffee, Building2, ChevronRight, MapPin } from "lucide-react";
 import BottomNav from "../components/BottomNav";
 import { useNav } from "../context/NavigationContext";
+import { rooms, type Room, type Category } from "../data/rooms";
 
 export const Route = createFileRoute("/destination")({ component: SelectDestination });
 
-const cats = [
-  { icon: GraduationCap, name: "Academic Depts", sub: "Block A & B • 12 Depts", bg: "#DBEAFE", fg: "#2563EB" },
-  { icon: FlaskConical, name: "Laboratories", sub: "Block C • Floor 1-3", bg: "#EDE9FF", fg: "#6B48D4" },
-  { icon: BookOpen, name: "Library", sub: "Block B • 3 Floors", bg: "#DCFCE7", fg: "#16A34A" },
-  { icon: Building2, name: "Administrative", sub: "Main Hub • Ground Flr", bg: "#F3F4F6", fg: "#4B5563" },
-  { icon: DoorOpen, name: "Faculty Rooms", sub: "Block D • Floor 2-4", bg: "#CCFBF1", fg: "#0D9488" },
-  { icon: Coffee, name: "Facilities", sub: "Various • Ground Floor", bg: "#FFEDD5", fg: "#EA580C" },
-];
-
-const recents = [
-  { name: "CS Computer Lab 4", loc: "Block A • Floor 3" },
-  { name: "Student Affairs Office", loc: "Admin Block • Floor 1" },
-];
+const catMeta: Record<Category, { icon: typeof FlaskConical; bg: string; fg: string }> = {
+  Lab:       { icon: FlaskConical, bg: "#EDE9FF", fg: "#6B48D4" },
+  Classroom: { icon: GraduationCap, bg: "#DBEAFE", fg: "#2563EB" },
+  Facility:  { icon: Coffee,        bg: "#FFEDD5", fg: "#EA580C" },
+  Admin:     { icon: Building2,     bg: "#F3F4F6", fg: "#4B5563" },
+};
 
 function SelectDestination() {
   const router = useRouter();
   const { setDestination } = useNav();
-  const pick = (name: string) => { setDestination(name); router.navigate({ to: "/map" }); };
+  const [q, setQ] = useState("");
+
+  const pick = (r: Room) => {
+    setDestination(r.id);
+    router.navigate({ to: "/map" });
+  };
+
+  const filtered = useMemo(() => {
+    const t = q.trim().toLowerCase();
+    return t ? rooms.filter(r => r.name.toLowerCase().includes(t) || r.category.toLowerCase().includes(t)) : rooms;
+  }, [q]);
+
+  const ground = filtered.filter(r => r.floor === "G");
+  const first  = filtered.filter(r => r.floor === "1");
 
   return (
     <div className="screen">
@@ -33,43 +41,74 @@ function SelectDestination() {
       </header>
 
       <div className="breadcrumb">
-        Home <span>›</span> Campus Map <span>›</span> <span className="current">Select Destination</span>
+        Home <span>›</span> <span className="current">Select Destination</span>
       </div>
 
       <div className="search-wrap">
         <div className="search-field">
           <Search size={18} />
-          <input className="search-input" placeholder="Search classroom, lab, office..." />
+          <input
+            className="search-input"
+            placeholder="Search room, lab, classroom..."
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
         </div>
       </div>
 
-      <div className="section-label">CATEGORIES</div>
-      <div className="cat-grid">
-        {cats.map(c => (
-          <button key={c.name} className="cat-card" onClick={() => pick(c.name)}>
-            <div className="cat-icon" style={{ background: c.bg, color: c.fg }}><c.icon size={22} /></div>
-            <div>
-              <div className="name">{c.name}</div>
-              <div className="sub">{c.sub}</div>
-            </div>
-          </button>
-        ))}
-      </div>
+      {ground.length > 0 && (
+        <>
+          <div className="floor-section-label">
+            <span className="fs-badge">G</span>
+            <span>GROUND FLOOR</span>
+            <span className="fs-count">{ground.length} rooms</span>
+          </div>
+          <RoomList rooms={ground} onPick={pick} />
+        </>
+      )}
 
-      <div className="section-label" style={{ marginTop: 16 }}>RECENT LOCATIONS</div>
-      <div className="recent-list">
-        {recents.map(r => (
-          <button key={r.name} className="recent-item" onClick={() => pick(r.name)}>
-            <div className="recent-icon"><Clock size={18} /></div>
-            <div className="meta"><div className="n">{r.name}</div><div className="l">{r.loc}</div></div>
-            <ChevronRight size={18} color="#9CA3AF" />
-          </button>
-        ))}
-      </div>
+      {first.length > 0 && (
+        <>
+          <div className="floor-section-label">
+            <span className="fs-badge alt">1</span>
+            <span>FIRST FLOOR</span>
+            <span className="fs-count">{first.length} rooms</span>
+          </div>
+          <RoomList rooms={first} onPick={pick} />
+        </>
+      )}
+
+      {filtered.length === 0 && (
+        <div className="empty-state">No rooms match "{q}"</div>
+      )}
 
       <BottomNav active="map" showFab />
-      {/* hidden link to ensure type */}
-      <Link to="/map" style={{ display: "none" }} />
+    </div>
+  );
+}
+
+function RoomList({ rooms, onPick }: { rooms: Room[]; onPick: (r: Room) => void }) {
+  return (
+    <div className="room-list">
+      {rooms.map(r => {
+        const m = catMeta[r.category];
+        const Icon = m.icon;
+        return (
+          <button key={r.id} className="room-item" onClick={() => onPick(r)}>
+            <div className="room-icon" style={{ background: m.bg, color: m.fg }}>
+              <Icon size={20} />
+            </div>
+            <div className="room-meta">
+              <div className="room-name">{r.name}</div>
+              <div className="room-sub">
+                <span className="floor-pill-mini"><MapPin size={11} /> Floor {r.floor === "G" ? "Ground" : r.floor}</span>
+                <span className="cat-tag" style={{ background: m.bg, color: m.fg }}>{r.category}</span>
+              </div>
+            </div>
+            <ChevronRight size={18} color="#9CA3AF" />
+          </button>
+        );
+      })}
     </div>
   );
 }
