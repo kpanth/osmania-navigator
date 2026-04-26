@@ -7,9 +7,9 @@ import { rooms, type Room, type Category } from "../data/rooms";
 
 export const Route = createFileRoute("/destination")({
   component: SelectDestination,
-  validateSearch: (s: Record<string, unknown>) => ({
-    mode: s.mode === "start" ? ("start" as const) : ("dest" as const),
-  }),
+  validateSearch: (s: Record<string, unknown>): { mode?: "start" | "dest" } => {
+    return s.mode === "start" || s.mode === "dest" ? { mode: s.mode } : {};
+  },
 });
 
 const catMeta: Record<Category, { icon: typeof FlaskConical; bg: string; fg: string }> = {
