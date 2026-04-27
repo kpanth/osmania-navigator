@@ -10,7 +10,7 @@ export const translations = {
     findDept: "Find a Department",
     viewMap: "View Campus Map",
     security: "Campus Security",
-    footer: "© 2024 OSMANIA COLLEGE CAMPUS CARE",
+    footer: "© 2026 OSMANIA COLLEGE CAMPUS CARE",
   },
   HI: {
     welcome: "ओस्मानिया कॉलेज में आपका स्वागत है",
@@ -21,7 +21,7 @@ export const translations = {
     findDept: "विभाग खोजें",
     viewMap: "कैंपस मैप देखें",
     security: "कैंपस सुरक्षा",
-    footer: "© 2024 ओस्मानिया कॉलेज कैंपस केयर",
+    footer: "© 2026 ओस्मानिया कॉलेज कैंपस केयर",
   },
   TE: {
     welcome: "ఓస్మానియా కాలేజీకి స్వాగతం",
@@ -32,6 +32,6 @@ export const translations = {
     findDept: "విభాగం కనుగొనండి",
     viewMap: "కేంపస్ మ్యాప్ చూడండి",
     security: "కేంపస్ భద్రత",
-    footer: "© 2024 ఓస్మానియా కాలేజ్ క్యాంపస్ కేర్",
+    footer: "© 2026 ఓస్మానియా కాలేజ్ క్యాంపస్ కేర్",
   },
 } as const;
